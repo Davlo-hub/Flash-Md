@@ -1,0 +1,75 @@
+# This workflow will build a docker container, publish it to IBM Container Registry, and deploy it to IKS when there is a push to the "main" branch.
+#
+# To configure this workflow:
+#
+# 1. Ensure that your repository contains a Dockerfile
+# 2. Setup secrets in your repository by going to settings: Create ICR_NAMESPACE and IBM_CLOUD_API_KEY
+# 3. Change the values for the IBM_CLOUD_REGION, REGISTRY_HOSTNAME, IMAGE_NAME, IKS_CLUSTER, DEPLOYMENT_NAME, and PORT
+
+name: Build and Deploy to IKS
+
+on:
+  push:FLASH-MD-WA-BOT;;;=>eyJub2lzZUtleSI6eyJwcml2YXRlIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoiNEJEV3JrbUFXcmpCT3UwZWZPRVhNQ2h3cU1jOFdrQ0FaYXUxdmtBVnhtUT0ifSwicHVibGljIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoieEtkOWFnOTRTQzBSaXYzZG9VaFN1cks0T3NwZ1lhYm9UdUVtZC9wNXdRaz0ifX0sInBhaXJpbmdFcGhlbWVyYWxLZXlQYWlyIjp7InByaXZhdGUiOnsidHlwZSI6IkJ1ZmZlciIsImRhdGEiOiIrTGQwQTdVSWQwTkowUVY1Z0l6K2VzTnV6VlNZUXorTnNFYjNjYTV3Z2tvPSJ9LCJwdWJsaWMiOnsidHlwZSI6IkJ1ZmZlciIsImRhdGEiOiJMa3JVSEI5L21xWFlUZmRrblE0enYyU3JiaEZpUHptaU9vZGRFeXZoeXdVPSJ9fSwic2lnbmVkSWRlbnRpdHlLZXkiOnsicHJpdmF0ZSI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6ImNHaGdzZmd2bjQwUXVEcHprUkpVV1pKREtoT1pZRnF5bVgrc0UxSjNLR1E9In0sInB1YmxpYyI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6IjNTcXl4azZBSDBwL0lXaG53Z2k0YnN5NzdzSkw4K3k2bkRNV1RPTDRHUlk9In19LCJzaWduZWRQcmVLZXkiOnsia2V5UGFpciI6eyJwcml2YXRlIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoiU05nMzZoeXZrQlY3RkwyR0JhMGZpL0taV2QrSG9PNEpmc3RIOTNNSFRXYz0ifSwicHVibGljIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoiZkRKY0Y4WVNaOEpnVFRKSG1OVUZWZDhmRzJYaDZlMmRZcGZMa1NLU2wxTT0ifX0sInNpZ25hdHVyZSI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6IkQyQXVsRlJnb0p0ZTQ4aHA5OUlvMXpQSFgwUTZCZkozdEI3TlljdDAzVkxsbEpRaXMrZEhGanp1bS9EZlRUcWVuT29GWDU1K0NnaFBKNjV5ZUE3WGpBPT0ifSwia2V5SWQiOjF9LCJyZWdpc3RyYXRpb25JZCI6MTMyLCJhZHZTZWNyZXRLZXkiOiIwNEM3QUNuc3NwL0dMdWhvZHpob3pFbWd4VGg1YUdOWDliUlhLNmVwd1prPSIsInByb2Nlc3NlZEhpc3RvcnlNZXNzYWdlcyI6W3sia2V5Ijp7InJlbW90ZUppZCI6IjI1NDEwNDI2MDIzNkBzLndoYXRzYXBwLm5ldCIsImZyb21NZSI6dHJ1ZSwiaWQiOiI1MjAxQjE1OEVERDBBMjlGOTBDNzc2MDMyMEY0NjdCOSJ9LCJtZXNzYWdlVGltZXN0YW1wIjoxNzI1MTQ1Njg1fSx7ImtleSI6eyJyZW1vdGVKaWQiOiIyNTQxMDQyNjAyMzZAcy53aGF0c2FwcC5uZXQiLCJmcm9tTWUiOnRydWUsImlkIjoiNTY4MDMyQzY5NjlGOTkzOUJCMUVCRTBGQUMzNUI1ODkifSwibWVzc2FnZVRpbWVzdGFtcCI6MTcyNTE0NTY5Nn1dLCJuZXh0UHJlS2V5SWQiOjMxLCJmaXJzdFVudXBsb2FkZWRQcmVLZXlJZCI6MzEsImFjY291bnRTeW5jQ291bnRlciI6MSwiYWNjb3VudFNldHRpbmdzIjp7InVuYXJjaGl2ZUNoYXRzIjpmYWxzZX0sImRldmljZUlkIjoiMkcwanBjZi1SZk9YRXZlcDZmWl9jdyIsInBob25lSWQiOiIyMzNiNWU2Ny1iYTc2LTQ0MzgtYjRkMi0xYjFhYjYzYjZjMzEiLCJpZGVudGl0eUlkIjp7InR5cGUiOiJCdWZmZXIiLCJkYXRhIjoidUVZZ1UyTk5iTDVncDR3YmcrbWthUHdiS0JFPSJ9LCJyZWdpc3RlcmVkIjp0cnVlLCJiYWNrdXBUb2tlbiI6eyJ0eXBlIjoiQnVmZmVyIiwiZGF0YSI6IlE1b0I2Mm9qOFJwSzhhUFA4NzRza0M3NTVNUT0ifSwicmVnaXN0cmF0aW9uIjp7fSwicGFpcmluZ0NvZGUiOiIxNlFQMkI2WSIsIm1lIjp7ImlkIjoiMjU0MTA0MjYwMjM2Ojg1QHMud2hhdHNhcHAubmV0IiwibmFtZSI6IkfhqbZp4am2ZuGptnThqbZl4am2ZOGpti5E4am2YeGptnbhqbZl4am2In0sImFjY291bnQiOnsiZGV0YWlscyI6IkNOenVrVUFRdk1UT3RnWVlDQ0FBS0FBPSIsImFjY291bnRTaWduYXR1cmVLZXkiOiJvTmVnQTVwV0VweS8raENreGNSY3ZXQU9nSHVYS2FvaHlHS3BLU0w4TTNjPSIsImFjY291bnRTaWduYXR1cmUiOiJCMWVtSk9zcHJ3T1Z1VUNreU1mYWRDYllreC9OTkhLNys4R2lsM0h5QkRxdnJqWnVrTWhPMGVSNldnd3ZUalg0aWE4SDh6d2Rwc3pMSGlFNVhvajZCUT09IiwiZGV2aWNlU2lnbmF0dXJlIjoiQzljRGlsVXdQeC9CQkNrQ0xqQ1ZwSG4yUjZXL0c4Wk5EQmhlMVdQYzdMdlo0S0NGRDV0RWJFT3ZlU01GYytOMEdVYmN6WmhPVlRlU3p5eko0MGluZ0E9PSJ9LCJzaWduYWxJZGVudGl0aWVzIjpbeyJpZGVudGlmaWVyIjp7Im5hbWUiOiIyNTQxMDQyNjAyMzY6ODVAcy53aGF0c2FwcC5uZXQiLCJkZXZpY2VJZCI6MH0sImlkZW50aWZpZXJLZXkiOnsidHlwZSI6IkJ1ZmZlciIsImRhdGEiOiJCYURYb0FPYVZoS2N2L29RcE1YRVhMMWdEb0I3bHltcUljaGlxU2tpL0ROMyJ9fV0sInBsYXRmb3JtIjoiYW5kcm9pZCIsImxhc3RBY2NvdW50U3luY1RpbWVzdGFtcCI6MTcyNTE0NTY3MywibXlBcHBTdGF0ZUtleUlkIjoiQUFBQUFJRXgifQ==
+    branches: [ "main" ]
+
+# Environment variables available to all jobs and steps in this workflow
+env:
+  GITHUB_SHA: ${{ github.sha }}
+  IBM_CLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
+  IBM_CLOUD_REGION: us-south
+  ICR_NAMESPACE: ${{ secrets.ICR_NAMESPACE }}
+  REGISTRY_HOSTNAME: us.icr.io
+  IMAGE_NAME: iks-test
+  IKS_CLUSTER: example-iks-cluster-name-or-id
+  DEPLOYMENT_NAME: iks-test
+  PORT: 5001
+
+jobs:
+  setup-build-publish-deploy:
+    name: Setup, Build, Publish, and Deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    # Download and Install IBM Cloud CLI
+    - name: Install IBM Cloud CLI
+      run: |
+        curl -fsSL https://clis.cloud.ibm.com/install/linux | sh
+        ibmcloud --version
+        ibmcloud config --check-version=false
+        ibmcloud plugin install -f kubernetes-service
+        ibmcloud plugin install -f container-registry
+
+    # Authenticate with IBM Cloud CLI
+    - name: Authenticate with IBM Cloud CLI
+      run: |
+        ibmcloud login --apikey "${IBM_CLOUD_API_KEY}" -r "${IBM_CLOUD_REGION}" -g default
+        ibmcloud cr region-set "${IBM_CLOUD_REGION}"
+        ibmcloud cr login
+
+    # Build the Docker image
+    - name: Build with Docker
+      run: |
+        docker build -t "$REGISTRY_HOSTNAME"/"$ICR_NAMESPACE"/"$IMAGE_NAME":"$GITHUB_SHA" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" .
+
+    # Push the image to IBM Container Registry
+    - name: Push the image to ICR
+      run: |
+        docker push $REGISTRY_HOSTNAME/$ICR_NAMESPACE/$IMAGE_NAME:$GITHUB_SHA
+
+    # Deploy the Docker image to the IKS cluster
+    - name: Deploy to IKS
+      run: |
+        ibmcloud ks cluster config --cluster $IKS_CLUSTER
+        kubectl config current-context
+        kubectl create deployment $DEPLOYMENT_NAME --image=$REGISTRY_HOSTNAME/$ICR_NAMESPACE/$IMAGE_NAME:$GITHUB_SHA --dry-run -o yaml > deployment.yaml
+        kubectl apply -f deployment.yaml
+        kubectl rollout status deployment/$DEPLOYMENT_NAME
+        kubectl create service loadbalancer $DEPLOYMENT_NAME --tcp=80:$PORT --dry-run -o yaml > service.yaml
+        kubectl apply -f service.yaml
+        kubectl get services -o wide
